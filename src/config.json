@@ -1,0 +1,11 @@
+{  
+    "tabledir": "..\\csv",  
+    "protodir": "..\\proto",  
+    "datadir": "..\\data",  
+    "protocompiler": "..\\compiler\\bin",  
+    "pythondir": "pbfile",  
+    "database": "mysql",
+    "packageName":"Pb",
+
+    "csharpdir" : "..\\csharp"
+} 
