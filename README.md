@@ -66,4 +66,7 @@ https://developers.google.com/protocol-buffers/docs/pythontutorial
 
 ChangeLog
 ====
-
+**v1.0.1:**
+* 使用py内置csv模块，处理逗号问题
+* 转表出现异常，在运行开始清理临时文件
+* 序列化字符串为protobuf的bytes

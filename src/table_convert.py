@@ -7,10 +7,11 @@
 #如无pb环境，在cmd命令行中执行下列信息：
 #pip install protobuf==4.21.6
 
-#version=1.0.0
-
+#version=1.0.1
+import csv 
 import os, sys
 import json
+import re
 import define as Define
 import data_column as DataColumn
 import template
@@ -32,7 +33,7 @@ def get_type_desc(type):
     elif type == 'Float':
         return 'float'
     elif type == 'String':
-        return 'string'    
+        return 'bytes'    
     else:
         print("配置中填写了一个未知的数据类型%s", type)
 
@@ -48,31 +49,29 @@ def  create_data_tuple(datas, datatypes):
         elif type == 'Float':
             tuple += (float(datas[index]),)
         elif type == 'String':
-            tuple += (datas[index],)
+            tuple += (bytes(datas[index], encoding='UTF-8'),)
         else:
             print("配置中填写了一个未知的数据类型%s", type)
     
     return tuple
 
-def generate_data(fileName, lines):
-    dataType = lines[Define.TableLineType.DataType.value].replace('\n', '').split(',')
+def generate_data(fileName, datas):
+    dataType = datas[Define.TableLineType.DataType.value]
     #生成pbscript并塞入表格数据
 
-
     tuplelist = []
-    for index, line in  enumerate(lines):
+    for index, data in  enumerate(datas):
         if index < Define.MaxTableInfoLineNum:
             continue
 
         #如果是注释
-        if line.lstrip()[0] == "#":
+        if data[0].lstrip()[0] == "#":
             continue
 
-        datas = line.replace('\n', '').split(',') 
-        if len(dataType) > len(datas):
+        if len(dataType) > len(data):
             print("配置数据缺失，行数：%d", index)
         
-        t = create_data_tuple(datas, dataType)
+        t = create_data_tuple(data, dataType)
         tuplelist.append(t)
 
     fileWithoutExt = fileName.replace('.csv', '')
@@ -176,12 +175,23 @@ def generate_proto(fileName, lines):
 
     delectFiles.append('pbfile/%s_pb2.py' %(fileName.replace('.csv', '')))
 #
+
+def clear_pbfile_dir():
+    for fileName in os.listdir('pbfile'):
+        if fileName.find('pb2') >= 0:
+            os.remove(os.path.join('pbfile', fileName))
+
+        if fileName.find('files') >=0:
+            os.remove(os.path.join('pbfile', fileName))
+
 if __name__ == '__main__': 
     delectFiles = []
     targetApi = "python"
     if len(sys.argv) >= 2:
         targetApi = sys.argv[1]
     
+    clear_pbfile_dir()
+
     #加载配置文件
     with open('config.json') as j:
         print("====================加载配置文件====================")
@@ -208,8 +218,11 @@ if __name__ == '__main__':
         print("====================序列化表格数据====================")
         for fileName in os.listdir(tabledir):
             with open(os.path.join(tabledir, fileName), 'r', encoding='gbk') as f:
-                lines = f.readlines()
-                generate_data(fileName, lines)
+                reader = csv.reader(f)
+                datas = []
+                for row in reader:
+                    datas.append(row)
+                generate_data(fileName, datas)
 
         print("====================清理临时文件====================")
         for deletePath in delectFiles:

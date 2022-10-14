@@ -2,7 +2,7 @@ IntParam,StrParam,FloatParam,BoolParam
 Int,String,Float,Bool
 1,1,1,1
 #廣瞥,,,
-1,込込込,0.5,1
+1,"込込,込",0.5,1
 2,込込込,0.5,1
 3,込込込,0.5,1
 4,込込込,0.5,1
