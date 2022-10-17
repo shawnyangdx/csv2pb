@@ -1,13 +1,13 @@
 from enum import Enum
 
-MaxTableInfoLineNum = 3
-
 class TableLineType(Enum):
     DataName = 0
     DataType = 1
     CSType = 2
-    Max = 3
+    Description = 3
+    Max = 4
 
-class DataType(Enum):
-    Single = 0 #单一变量，如int， float， string等
-    List = 1
+class CSType(Enum):
+    cs = 0, #共用
+    c = 1 #只有客户端
+    s = 2, #只有服务器

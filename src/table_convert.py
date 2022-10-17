@@ -7,7 +7,7 @@
 #如无pb环境，在cmd命令行中执行下列信息：
 #pip install protobuf==4.21.6
 
-#version=1.0.1
+#version=1.0.2
 import csv 
 import os, sys
 import json
@@ -58,10 +58,12 @@ def  create_data_tuple(datas, datatypes):
 def generate_data(fileName, datas):
     dataType = datas[Define.TableLineType.DataType.value]
     #生成pbscript并塞入表格数据
-
+    key = fileNameToKey[fileName]
+    if key != None:
+        keyindex = 0
     tuplelist = []
     for index, data in  enumerate(datas):
-        if index < Define.MaxTableInfoLineNum:
+        if index < Define.TableLineType.Max.value:
             continue
 
         #如果是注释
@@ -71,11 +73,12 @@ def generate_data(fileName, datas):
         if len(dataType) > len(data):
             print("配置数据缺失，行数：%d", index)
         
+
         t = create_data_tuple(data, dataType)
         tuplelist.append(t)
 
     fileWithoutExt = fileName.replace('.csv', '')
-    exec("handleContext.serialize2pb%s(tuplelist, cfg)" % (fileWithoutExt))
+    exec("handleContext.serialize2pb%s(keyindex, tuplelist, cfg)" % (fileWithoutExt))
     print(fileName)
 
 def find_column_by_name(name, columns):
@@ -106,7 +109,7 @@ def parse_dataname(dataName):
     return allColumns
 
 def generate_proto(fileName, lines):
-    if len(lines) < Define.MaxTableInfoLineNum:
+    if len(lines) < Define.TableLineType.Max.value:
         print("表头行数少于3行，请检查表配置（标题，类型，cs类型）")
         return
     
@@ -114,6 +117,14 @@ def generate_proto(fileName, lines):
     dataType = lines[Define.TableLineType.DataType.value].replace('\n', '').split(',')
     csType = lines[Define.TableLineType.CSType.value].replace('\n', '').split(',')
 
+    descriptions = lines[Define.TableLineType.Description.value].replace('\n', '').split(',')[0].split(';')
+    key = descriptions[0].split('=')[1]
+    if key != dataName[0]:
+        print("表格key值不对应，请检查表格是否配置了key值对应字段名，及是否名称相同.")
+        return
+
+    fileNameToKey[fileName] = key
+    keyType = dataType[0]
     if len(dataName) != len(dataType) != len(csType):
         print("表头列数量不一致，请检查配置")
         return
@@ -152,7 +163,7 @@ def generate_proto(fileName, lines):
         title = '%s%s\n' % ((protoName.replace('.proto',''),'{'))
         str += 'message '
         str += title.title()
-        str += ' repeated {} {} = 1;\n'.format(structName, structName)
+        str += ' map<%s, %s> %s = 1;\n' % (get_type_desc(keyType), structName, structName)
         str += '}\n'
         file.write(str)
     
@@ -206,6 +217,8 @@ if __name__ == '__main__':
     write_file_context(template.import_title())
 
     print("====================生成proto文件====================")
+
+    fileNameToKey = {}
     for fileName in os.listdir(tabledir):
         with open(os.path.join(tabledir, fileName), 'r', encoding='gbk') as f:
             lines = f.readlines()

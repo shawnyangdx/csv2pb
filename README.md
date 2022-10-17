@@ -59,13 +59,19 @@ https://developers.google.com/protocol-buffers/docs/pythontutorial
 
 **CSType：**
 区分服务器客户端或共用，过滤无用字段。（目前还未实现）  
-
-
+  
+  
+**其他**：
 * 可以注释行，在行最开始使用<font color=red>'#'</font> 
 
 
 ChangeLog
 ====
+**v1.0.2:**
+* 修改pb结构，repeated替换为map
+* 表格结构修改，表头添加“描述”行，指定key值。
+* client-server字段配置描述修改：改为更直观的"cs"
+  
 **v1.0.1:**
 * 使用py内置csv模块，处理逗号问题
 * 转表出现异常，在运行开始清理临时文件
