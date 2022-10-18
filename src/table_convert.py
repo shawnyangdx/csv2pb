@@ -7,7 +7,7 @@
 #如无pb环境，在cmd命令行中执行下列信息：
 #pip install protobuf==4.21.6
 
-#version=1.0.2
+#version=1.0.3
 import csv 
 import os, sys
 import json
@@ -39,9 +39,12 @@ def get_type_desc(type):
 
     return ''
 
-def  create_data_tuple(datas, datatypes):
+def  create_data_tuple(datas, datatypes, ignoreindex):
     tuple = ()
     for index, type in enumerate(datatypes):
+        if ignoreindex.count(index) > 0:
+            continue
+
         if type == 'Int':
             tuple += (int(datas[index]),)
         elif type == 'Bool':
@@ -55,8 +58,23 @@ def  create_data_tuple(datas, datatypes):
     
     return tuple
 
+def get_ignore_index(dataname):
+    ignoreindex = []
+    allColumns = parse_dataname(dataname)
+    for c in allColumns:
+        if c.ignore:
+            ignoreindex.append(c.startIndex)
+            for i in range(1,c.datalength):
+                ignoreindex.append(i + c.startIndex)
+    
+    return ignoreindex
+            
+
 def generate_data(fileName, datas):
+    dataName = datas[Define.TableLineType.DataName.value]
     dataType = datas[Define.TableLineType.DataType.value]
+
+    ignoreindex = get_ignore_index(dataName)
     #生成pbscript并塞入表格数据
     key = fileNameToKey[fileName]
     if key != None:
@@ -74,7 +92,7 @@ def generate_data(fileName, datas):
             print("配置数据缺失，行数：%d", index)
         
 
-        t = create_data_tuple(data, dataType)
+        t = create_data_tuple(data, dataType, ignoreindex)
         tuplelist.append(t)
 
     fileWithoutExt = fileName.replace('.csv', '')
@@ -99,12 +117,20 @@ def parse_dataname(dataName):
                 newindex = int(strlist[1])
                 findcolumn = find_column_by_name(newname, allColumns)
                 if findcolumn == None:
-                    findcolumn = DataColumn.DataColumn(index, newname)
+                    ignoreindex = name.find('#')
+                    actname = newname
+                    if ignoreindex >= 0:
+                        actname = newname.replace("#", '')
+                    findcolumn = DataColumn.DataColumn(index, actname, ignoreindex >= 0)
                     allColumns.append(findcolumn)
                 else:
                     findcolumn.updatelist(index, newindex)
         else:
-            allColumns.append(DataColumn.DataColumn(index, name))
+            ignoreindex = name.find('#')
+            actname = name
+            if ignoreindex >= 0:
+                actname = name.replace("#", '')
+            allColumns.append(DataColumn.DataColumn(index, actname, ignoreindex >= 0))
 
     return allColumns
 
@@ -149,8 +175,14 @@ def generate_proto(fileName, lines):
         str += 'message '
         str += '{}{}\n'.format(structName,'{')
         for index, c in enumerate(allColumns):
+            if c.ignore:
+                continue
             t = dataType[c.startIndex]
             cst = csType[c.startIndex]
+            if cst == "": #如果为空，则不加数据
+                print("有数据cstype未标识，默认为客户端-服务器（cs）类型")
+                cst = "cs"
+
             str += " repeated " if c.datalength > 1 else " optional "
             str += get_type_desc(t)
             str += ' '

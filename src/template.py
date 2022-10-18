@@ -12,6 +12,9 @@ def serialize2db_message(fileName, messageName, structName, allColumns):
     flieNameWithoutExt = fileName.replace('.csv', '')
     body = ""
     for index, column in enumerate(allColumns):
+        if column.ignore:
+            continue
+
         if column.datalength > 1:
             for i in range(column.datalength):
                 body += "            obj.%s.append(tuple[%s])" % (column.name.title(), column.startIndex + i)

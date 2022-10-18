@@ -63,10 +63,14 @@ https://developers.google.com/protocol-buffers/docs/pythontutorial
   
 **其他**：
 * 可以注释行，在行最开始使用<font color=red>'#'</font> 
-
+* 可以注释列，在表头字段名称前使用<font color=red>'#'</font> 
 
 ChangeLog
 ====
+**v1.0.3:**
+* 增加注释列，在表头字段前使用#
+* client-server字段如果遗漏了配置，默认为"cs"，同时会给出提示
+  
 **v1.0.2:**
 * 修改pb结构，repeated替换为map
 * 表格结构修改，表头添加“描述”行，指定key值。

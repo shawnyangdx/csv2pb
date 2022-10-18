@@ -1,8 +1,9 @@
 class DataColumn(object):
-    def __init__(self, index, name):
+    def __init__(self, index, name, ignore):
         self.startIndex = index
         self.datalength = 1
         self.name = name
+        self.ignore = ignore
     
     def __str__(self):
         return 'Name:%s, StartIndex:%d, DataLength:%d' %(self.name, self.startIndex, self.datalength)
