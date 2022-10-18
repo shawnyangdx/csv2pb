@@ -39,11 +39,11 @@ def get_type_desc(type):
 
     return ''
 
-def  create_data_tuple(datas, datatypes, ignoreindex):
+def  create_data_tuple(datas, datatypes):
     tuple = ()
     for index, type in enumerate(datatypes):
-        if ignoreindex.count(index) > 0:
-            continue
+        # if ignoreindex.count(index) > 0:
+        #     continue
 
         if type == 'Int':
             tuple += (int(datas[index]),)
@@ -57,24 +57,12 @@ def  create_data_tuple(datas, datatypes, ignoreindex):
             print("配置中填写了一个未知的数据类型%s", type)
     
     return tuple
-
-def get_ignore_index(dataname):
-    ignoreindex = []
-    allColumns = parse_dataname(dataname)
-    for c in allColumns:
-        if c.ignore:
-            ignoreindex.append(c.startIndex)
-            for i in range(1,c.datalength):
-                ignoreindex.append(i + c.startIndex)
-    
-    return ignoreindex
             
 
 def generate_data(fileName, datas):
     dataName = datas[Define.TableLineType.DataName.value]
     dataType = datas[Define.TableLineType.DataType.value]
 
-    ignoreindex = get_ignore_index(dataName)
     #生成pbscript并塞入表格数据
     key = fileNameToKey[fileName]
     if key != None:
@@ -92,7 +80,7 @@ def generate_data(fileName, datas):
             print("配置数据缺失，行数：%d", index)
         
 
-        t = create_data_tuple(data, dataType, ignoreindex)
+        t = create_data_tuple(data, dataType)
         tuplelist.append(t)
 
     fileWithoutExt = fileName.replace('.csv', '')
