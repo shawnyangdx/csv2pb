@@ -208,12 +208,27 @@ def generate_proto(fileName, lines):
 #
 
 def clear_pbfile_dir():
+    if not os.path.exists('pbfile'):
+        return
+    
     for fileName in os.listdir('pbfile'):
         if fileName.find('pb2') >= 0:
             os.remove(os.path.join('pbfile', fileName))
 
         if fileName.find('files') >=0:
             os.remove(os.path.join('pbfile', fileName))
+
+def clear__py_cache(path):
+    # 遍历目录下所有文件
+    for file_name in os.listdir(path):
+        abs_path = os.path.join(path, file_name)
+        if file_name == "__pycache__":
+            print(abs_path)
+            # 删除 `__pycache__` 目录及其中的所有文件
+            shutil.rmtree(abs_path)
+        elif os.path.isdir(abs_path):
+            # 递归调用
+            clear__py_cache(abs_path)
 
 if __name__ == '__main__': 
     delectFiles = []
@@ -266,3 +281,6 @@ if __name__ == '__main__':
     protodir = os.path.join(os.path.dirname(os.path.abspath(__file__)), cfg['protodir'])
     if os.path.exists(protodir):
         shutil.rmtree(protodir)  
+
+    #清理pycache
+    clear__py_cache(os.getcwd())

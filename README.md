@@ -67,6 +67,10 @@ https://developers.google.com/protocol-buffers/docs/pythontutorial
 
 ChangeLog
 ====
+**v1.0.4:**
+* 添加launch.json配置文件，debug模式调整到src目录
+* 清理pycache文件
+  
 **v1.0.3:**
 * 增加注释列，在表头字段前使用#
 * client-server字段如果遗漏了配置，默认为"cs"，同时会给出提示
