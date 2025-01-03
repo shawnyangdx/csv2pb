@@ -8,6 +8,7 @@ def import_title():
 def import_pb2(fileName):
     return 'import pbfile.%s_pb2' % (fileName.replace('.csv', ''))
 
+
 def serialize2db_message(fileName, messageName, structName, allColumns):
     flieNameWithoutExt = fileName.replace('.csv', '')
     body = ""
