@@ -31,4 +31,4 @@ def serialize2pb%s(keyindex, tuplelist, cfg):\n\
         for tuple in tuplelist:\n\
             data = inst.datas.add()\n\
 %s\n\
-        f.write(inst.SerializeToString())\n" % (flieNameWithoutExt, fileName.replace('.csv', '.dat'), flieNameWithoutExt, messageName, body)
+        f.write(inst.SerializeToString())\n" % (flieNameWithoutExt, fileName.replace('.csv', '.bytes'), flieNameWithoutExt, messageName, body)
