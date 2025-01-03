@@ -26,14 +26,16 @@ def  write_file_context(str):
         fileContext.write(str)
 
 def get_type_desc(type):
-    if type == 'Int':
+    if type == 'int':
         return 'int32'
-    elif type == 'Bool':
+    elif type == 'bool':
         return 'bool'
-    elif type == 'Float':
+    elif type == 'float':
         return 'float'
-    elif type == 'String':
-        return 'bytes'    
+    elif type == 'double':
+        return 'double'
+    elif type == 'string':
+        return 'string'    
     else:
         print("配置中填写了一个未知的数据类型%s", type)
 
@@ -45,14 +47,17 @@ def  create_data_tuple(datas, datatypes):
         # if ignoreindex.count(index) > 0:
         #     continue
 
-        if type == 'Int':
+        if type == 'int':
             tuple += (int(datas[index]),)
-        elif type == 'Bool':
+        elif type == 'bool':
             tuple += ((True if int(datas[index]) == 1 else False),)
-        elif type == 'Float':
+        elif type == 'float':
             tuple += (float(datas[index]),)
-        elif type == 'String':
-            tuple += (bytes(datas[index], encoding='UTF-8'),)
+        elif type == 'double':
+            tuple += (float(datas[index]),)
+        elif type == 'string':
+            # tuple += (bytes(datas[index], encoding='UTF-8'),)
+            tuple += (datas[index],)
         else:
             print("配置中填写了一个未知的数据类型%s", type)
     
@@ -62,16 +67,17 @@ def  create_data_tuple(datas, datatypes):
 def generate_data(fileName, datas):
     dataName = datas[Define.TableLineType.DataName.value]
     dataType = datas[Define.TableLineType.DataType.value]
-
+    dataType.pop(0)
     #生成pbscript并塞入表格数据
     key = fileNameToKey[fileName]
     if key != None:
         keyindex = 0
     tuplelist = []
     for index, data in  enumerate(datas):
-        if index < Define.TableLineType.Max.value:
+        if index <= Define.TableLineType.Max.value:
             continue
 
+        data.pop(0)
         #如果是注释
         if data[0].lstrip()[0] == "#":
             continue
@@ -125,23 +131,32 @@ def parse_dataname(dataName):
 def generate_proto(fileName, lines):
     if len(lines) < Define.TableLineType.Max.value:
         print("表头行数少于3行，请检查表配置（标题，类型，cs类型）")
-        return
+        return False
     
     dataName = lines[Define.TableLineType.DataName.value].replace('\n', '').split(',')
+    dataName.pop(0)
     dataType = lines[Define.TableLineType.DataType.value].replace('\n', '').split(',')
+    dataType.pop(0)
     csType = lines[Define.TableLineType.CSType.value].replace('\n', '').split(',')
+    csType.pop(0)
+    descriptions = lines[Define.TableLineType.Description.value].replace('\n', '').split(',')
+    if len(descriptions) <= 0:
+        print("描述缺少关键字，请检查表格是否配置了key值.")
+        return False
 
-    descriptions = lines[Define.TableLineType.Description.value].replace('\n', '').split(',')[0].split(';')
+    descriptions = descriptions[1].split(';')
+
     key = descriptions[0].split('=')[1]
     if key != dataName[0]:
         print("表格key值不对应，请检查表格是否配置了key值对应字段名，及是否名称相同.")
-        return
+        return False
+
+    if len(dataName) != len(dataType) != len(csType):
+        print("表头列数量不一致，请检查配置")
+        return False
 
     fileNameToKey[fileName] = key
     keyType = dataType[0]
-    if len(dataName) != len(dataType) != len(csType):
-        print("表头列数量不一致，请检查配置")
-        return
     
     allColumns = parse_dataname(dataName)
 
@@ -158,10 +173,17 @@ def generate_proto(fileName, lines):
         str += 'package %s;' % cfg['packageName']
         str += '\n'
 
-        #解析表头生成struct
-        structName = protoName.replace('.proto','Struct')
+
+
+        #生成包含struct的数据格式
+        title = '%s%s\n' % ((protoName.replace('.proto',''),'{'))
         str += 'message '
-        str += '{}{}\n'.format(structName,'{')
+        str += title.title()
+                #解析表头生成struct
+        structName = 'Data'
+        str += '    \n'
+        str += '    message '
+        str += ' {}{}\n'.format(structName,'{')
         for index, c in enumerate(allColumns):
             if c.ignore:
                 continue
@@ -171,19 +193,14 @@ def generate_proto(fileName, lines):
                 print("有数据cstype未标识，默认为客户端-服务器（cs）类型")
                 cst = "cs"
 
-            str += " repeated " if c.datalength > 1 else " optional "
+            str += "        repeated " if c.datalength > 1 else "       optional "
             str += get_type_desc(t)
             str += ' '
-            str += c.name.title()
-            str += ' = {};\n'.format(index + 1)           
-        str += '}\n'
-        str += '\n'
-
-        #生成包含struct的数据格式
-        title = '%s%s\n' % ((protoName.replace('.proto',''),'{'))
-        str += 'message '
-        str += title.title()
-        str += ' map<%s, %s> %s = 1;\n' % (get_type_desc(keyType), structName, structName)
+            str +=  c.name.title()
+            str += '     = {};\n'.format(index + 1)           
+        str += '    }\n'
+        str += '    \n'
+        str += ' repeated Data datas = 1;\n'
         str += '}\n'
         file.write(str)
     
@@ -205,6 +222,7 @@ def generate_proto(fileName, lines):
     print(command)
 
     delectFiles.append('pbfile/%s_pb2.py' %(fileName.replace('.csv', '')))
+    return True
 #
 
 def clear_pbfile_dir():
@@ -257,8 +275,8 @@ if __name__ == '__main__':
     for fileName in os.listdir(tabledir):
         with open(os.path.join(tabledir, fileName), 'r', encoding='gbk') as f:
             lines = f.readlines()
-            generate_proto(fileName, lines)
-
+            if generate_proto(fileName, lines) == False:
+                sys.exit()
 
     if targetApi == "python":
         exec("import pbfile.files as handleContext")

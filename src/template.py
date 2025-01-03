@@ -18,10 +18,10 @@ def serialize2db_message(fileName, messageName, structName, allColumns):
 
         if column.datalength > 1:
             for i in range(column.datalength):
-                body += "            obj.%s.append(tuple[%s])" % (column.name.title(), column.startIndex + i)
+                body += "            data.%s.append(tuple[%s])" % (column.name.title(), column.startIndex + i)
                 body += "\n"
         else:
-            body += "            obj.%s = tuple[%s]" % (column.name.title(), column.startIndex)
+            body += "            data.%s = tuple[%s]" % (column.name.title(), column.startIndex)
             body += "\n"
     return "\n\
 def serialize2pb%s(keyindex, tuplelist, cfg):\n\
@@ -29,6 +29,6 @@ def serialize2pb%s(keyindex, tuplelist, cfg):\n\
     with open(os.path.join(datadir, '%s'), 'wb') as f:\n\
         inst = pbfile.%s_pb2.%s()\n\
         for tuple in tuplelist:\n\
-            obj = inst.%s.get_or_create(tuple[keyindex])\n\
+            data = inst.datas.add()\n\
 %s\n\
-        f.write(inst.SerializeToString())\n" % (flieNameWithoutExt, fileName.replace('.csv', '.dat'), flieNameWithoutExt, messageName, structName, body)
+        f.write(inst.SerializeToString())\n" % (flieNameWithoutExt, fileName.replace('.csv', '.dat'), flieNameWithoutExt, messageName, body)
