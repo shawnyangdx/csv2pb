@@ -6,7 +6,7 @@ def import_title():
     return 'import os'
 
 def import_pb2(fileName):
-    return 'import pbfile.Tab_%s_pb2' % (fileName.replace('.csv', ''))
+    return 'import pbfile.Tab%s_pb2' % (fileName.replace('.csv', ''))
 
 
 def serialize2db_message(fileName, messageName, structName, allColumns):
@@ -26,8 +26,8 @@ def serialize2db_message(fileName, messageName, structName, allColumns):
     return "\n\
 def serialize2pb%s(keyindex, tuplelist, cfg):\n\
     datadir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', cfg['datadir'])\n\
-    with open(os.path.join(datadir, 'Tab_%s'), 'wb') as f:\n\
-        inst = pbfile.Tab_%s_pb2.%s()\n\
+    with open(os.path.join(datadir, 'Tab%s'), 'wb') as f:\n\
+        inst = pbfile.Tab%s_pb2.%s()\n\
         for tuple in tuplelist:\n\
             data = inst.datas.add()\n\
 %s\n\
