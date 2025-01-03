@@ -296,9 +296,9 @@ if __name__ == '__main__':
 
 
     #清理临时目录
-    # protodir = os.path.join(os.path.dirname(os.path.abspath(__file__)), cfg['protodir'])
-    # if os.path.exists(protodir):
-    #     shutil.rmtree(protodir)  
+    protodir = os.path.join(os.path.dirname(os.path.abspath(__file__)), cfg['protodir'])
+    if os.path.exists(protodir):
+        shutil.rmtree(protodir)  
 
     #清理pycache
     clear__py_cache(os.getcwd())
