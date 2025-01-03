@@ -161,7 +161,7 @@ def generate_proto(fileName, lines):
     allColumns = parse_dataname(dataName)
 
     #生成pb格式
-    protoName = 'Tab' + fileName.replace('.csv', '.proto')
+    protoName = 'Tab_' + fileName.replace('.csv', '.proto')
     protodir = os.path.join(os.path.dirname(os.path.abspath(__file__)), cfg['protodir'])
     if not os.path.exists(protodir):
         os.mkdir(protodir)
@@ -210,7 +210,7 @@ def generate_proto(fileName, lines):
     rootpath = os.path.dirname(os.path.abspath(__file__))
     compiler = os.path.join(rootpath, cfg['protocompiler'])
 
-    protoName = 'Tab' + fileName.replace('.csv', '.proto')
+    protoName = 'Tab_' + fileName.replace('.csv', '.proto')
     protodir = os.path.join(rootpath, cfg['protodir'])
     dir = '%sdir' % (targetApi)
     tmpdir = os.path.join(rootpath, cfg[dir])
@@ -221,7 +221,7 @@ def generate_proto(fileName, lines):
     os.system(command)
     print(command)
 
-    delectFiles.append('pbfile/Tab%s_pb2.py' %(fileName.replace('.csv', '')))
+    delectFiles.append('pbfile/Tab_%s_pb2.py' %(fileName.replace('.csv', '')))
     return True
 #
 
